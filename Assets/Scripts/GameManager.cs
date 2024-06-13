@@ -22,7 +22,7 @@ public class GameManager : MonoBehaviour
 
     public Material placedPieceMat;
 
-    public int[,] board = new int[3, 3]; // 0 = empty, 1 = X, 2 = O
+    public int[,] board = new int[3, 3];
     private int movesMade = 0;
 
     public List<GameObject> placedPieces = new List<GameObject>();
@@ -242,7 +242,7 @@ public class GameManager : MonoBehaviour
 
     IEnumerator ComputerMove()
     {
-        yield return new WaitForSeconds(1.0f); // Small delay to simulate thinking time
+        yield return new WaitForSeconds(1.0f);
 
         // Find a random empty spot
         List<int> emptySpots = new List<int>();
@@ -261,7 +261,6 @@ public class GameManager : MonoBehaviour
             int y = moveIndex % 3;
             PlacePiece(x, y, 2);
 
-            // Instantiate and place the piece visually
             GameObject piece = Instantiate(oPrefab, gameBoardTriggers[moveIndex].transform.position, Quaternion.Euler(-90f, 0, 0));
             piece.GetComponent<MeshRenderer>().material = placedPieceMat;
             placedPieces.Add(piece);

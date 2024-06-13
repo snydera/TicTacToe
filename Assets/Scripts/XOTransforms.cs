@@ -19,36 +19,17 @@ public class XOTransforms : MonoBehaviour
         gameManager = FindObjectOfType<GameManager>();
     }
 
-    // Start is called before the first frame update
     void Start()
     {
+        //Creates coordinates from names of game objects
         string name = this.gameObject.name;
-
-        // Map letters A, B, C to indices 0, 1, 2
         x = name[0] - 'A';
-
-        // Map numbers 1, 2, 3 to indices 0, 1, 2
         y = int.Parse(name[1].ToString()) - 1;
     }
 
 
     private void OnMouseOver()
     {
-        /*
-        Debug.Log("Mouse over " + this.gameObject.name);
-
-        if (gameManager.xTurn && !hovering)
-        {
-            hoveringGamePiece = Instantiate(gameManager.xPrefab, transform);
-            hovering = true;
-        }
-        else if (gameManager.xTurn == false && !hovering)
-        {
-            hoveringGamePiece = Instantiate(gameManager.oPrefab, transform);
-            hovering = true;
-        }
-        */
-
         if (!hovering && gameManager.board[x, y] == 0 && gameManager.computerMove == false)
         {
             hoveringGamePiece = Instantiate(gameManager.xTurn ? gameManager.xPrefab : gameManager.oPrefab, transform);
@@ -63,26 +44,10 @@ public class XOTransforms : MonoBehaviour
             Destroy(hoveringGamePiece);
             hovering = false;
         }
-
-        /*
-        Destroy(hoveringGamePiece);
-        hovering = false;
-        */
     }
 
     private void OnMouseDown()
     {
-        /*
-        if (gameManager.xTurn && hovering)
-        {
-            PlaceGamePiece(gameManager.xPrefab);
-        }
-        else if (gameManager.xTurn == false && hovering)
-        {
-            PlaceGamePiece(gameManager.oPrefab);
-        }
-        */
-
         if (hovering && gameManager.board[x, y] == 0 && gameManager.computerMove == false)
         {
             PlaceGamePiece(gameManager.xTurn ? gameManager.xPrefab : gameManager.oPrefab);
@@ -98,7 +63,6 @@ public class XOTransforms : MonoBehaviour
         placedGamePiece.GetComponent<MeshRenderer>().material = gameManager.placedPieceMat;
         GetComponent<BoxCollider>().enabled = false;
         hovering = false;
-        //gameManager.PlayQuickSound(gameManager.sfxClips[Random.Range(1, 4)]);
         StartCoroutine(DelayChangeTurn());
     }
 
@@ -106,6 +70,5 @@ public class XOTransforms : MonoBehaviour
     {
         yield return new WaitForSeconds(0.1f);
         gameManager.TogglePlayerTurn();
-    }
-        
+    }     
 }
