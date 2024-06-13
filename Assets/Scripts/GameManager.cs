@@ -11,6 +11,7 @@ public class GameManager : MonoBehaviour
 
     public bool xTurn = true;
     public bool computerMove = false;
+    public bool canClick = true;
 
     bool gameOver = false;
     bool onePlayerMode = false;
@@ -57,6 +58,9 @@ public class GameManager : MonoBehaviour
     [SerializeField]
     GameObject muteSFXButton;
 
+    [SerializeField]
+    GameObject blockingCollider;
+
     private void Start()
     {
         resultPanel.SetActive(false);
@@ -100,6 +104,10 @@ public class GameManager : MonoBehaviour
         {
             EndGame("It's a Draw!");
             PlayQuickSound(sfxClips[6]);
+        }
+        else if (movesMade == 1)
+        {
+            resultPanel.SetActive(false);
         }
     }
 
@@ -167,8 +175,11 @@ public class GameManager : MonoBehaviour
         else
         {
             cameraAnimator.SetTrigger("StartGame");
+            StartCoroutine(DelayInstructionsText());
         }
 
+        resultPanel.SetActive(true);
+        resultText.text = "X moves first. Click an open space on the board.";
         PlayQuickSound(sfxClips[0]);
     }
 
@@ -183,9 +194,18 @@ public class GameManager : MonoBehaviour
         else
         {
             cameraAnimator.SetTrigger("StartGame");
+            StartCoroutine(DelayInstructionsText());
         }
 
+
         PlayQuickSound(sfxClips[0]);
+    }
+
+    IEnumerator DelayInstructionsText()
+    {
+        yield return new WaitForSeconds(2f);
+        resultPanel.SetActive(true);
+        resultText.text = "X moves first. Click an open space on the board.";
     }
 
     public void MuteMusicButton()
@@ -242,6 +262,8 @@ public class GameManager : MonoBehaviour
 
     IEnumerator ComputerMove()
     {
+        blockingCollider.SetActive(true);
+        
         yield return new WaitForSeconds(1.0f);
 
         // Find a random empty spot
@@ -268,7 +290,9 @@ public class GameManager : MonoBehaviour
 
             TogglePlayerTurn();
         }
-
         computerMove = false;
+        
+        yield return new WaitForSeconds(1.0f);
+        blockingCollider.SetActive(false);
     }
 }
