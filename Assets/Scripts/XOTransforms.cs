@@ -98,6 +98,7 @@ public class XOTransforms : MonoBehaviour
         placedGamePiece.GetComponent<MeshRenderer>().material = gameManager.placedPieceMat;
         GetComponent<BoxCollider>().enabled = false;
         hovering = false;
+        //gameManager.PlayQuickSound(gameManager.sfxClips[Random.Range(1, 4)]);
         StartCoroutine(DelayChangeTurn());
     }
 

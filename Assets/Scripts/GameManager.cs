@@ -2,33 +2,60 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
+using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
-    public bool xTurn = true;
-
     public GameObject xPrefab;
     public GameObject oPrefab;
 
-    public Material placedPieceMat;
+    public bool xTurn = true;
+    public bool computerMove = false;
 
-    public Animator cameraAnimator;
-    public Transform mainCameraTransform;
-    public Transform gameViewTransform;
+    bool gameOver = false;
+    bool onePlayerMode = false;
+
+    bool musicMuted = false;
+    bool sfxMuted = false;
+
+    public AudioClip[] sfxClips;
+
+    public Material placedPieceMat;
 
     public int[,] board = new int[3, 3]; // 0 = empty, 1 = X, 2 = O
     private int movesMade = 0;
 
-    public TextMeshProUGUI resultText;
-    public GameObject resultPanel;
-    public GameObject buttonPanel;
-
     public List<GameObject> placedPieces = new List<GameObject>();
-    public Collider[] gameBoardTriggers;
 
-    bool gameOver = false;
-    bool onePlayerMode = false;
-    public bool computerMove = false;
+    [SerializeField]
+    Collider[] gameBoardTriggers;
+
+    [SerializeField]
+    GameObject resultPanel;
+
+    [SerializeField]
+    TextMeshProUGUI resultText;
+
+    [SerializeField]
+    GameObject buttonPanel;
+
+    [SerializeField]
+    Animator cameraAnimator;
+
+    [SerializeField]
+    AudioSource musicSource;
+
+    [SerializeField]
+    AudioSource sfxSource;
+
+    [SerializeField]
+    Color[] buttonColors;
+
+    [SerializeField]
+    GameObject muteMusicButton;
+
+    [SerializeField]
+    GameObject muteSFXButton;
 
     private void Start()
     {
@@ -60,16 +87,19 @@ public class GameManager : MonoBehaviour
 
     public void PlacePiece(int x, int y, int player)
     {
+        PlayQuickSound(sfxClips[Random.Range(1, 4)]);
         board[x, y] = player;
         movesMade++;
 
         if (CheckWin(x, y, player))
         {
             EndGame(player == 1 ? "X Wins!" : "O Wins!");
+            PlayQuickSound(sfxClips[5]);
         }
         else if (movesMade == 9)
         {
             EndGame("It's a Draw!");
+            PlayQuickSound(sfxClips[6]);
         }
     }
 
@@ -133,13 +163,13 @@ public class GameManager : MonoBehaviour
         if (gameOver)
         {
             ResetBoard();
-
         }
         else
         {
             cameraAnimator.SetTrigger("StartGame");
         }
-        
+
+        PlayQuickSound(sfxClips[0]);
     }
 
     public void TwoPlayersButton()
@@ -148,14 +178,66 @@ public class GameManager : MonoBehaviour
 
         if (gameOver)
         {
-            ResetBoard();
-           
+            ResetBoard(); 
         }
         else
         {
             cameraAnimator.SetTrigger("StartGame");
         }
-        
+
+        PlayQuickSound(sfxClips[0]);
+    }
+
+    public void MuteMusicButton()
+    {
+        if (musicMuted)
+        {
+            muteMusicButton.GetComponent<Image>().color = buttonColors[0];
+            muteMusicButton.transform.Find("Text (TMP)").GetComponent<TextMeshProUGUI>().text = "Mute Music";
+            musicSource.volume = 1;
+            musicMuted = false;
+            PlayQuickSound(sfxClips[0]);
+        }
+        else
+        {
+            muteMusicButton.GetComponent<Image>().color = buttonColors[1];
+            muteMusicButton.transform.Find("Text (TMP)").GetComponent<TextMeshProUGUI>().text = "Unmute Music";
+            musicSource.volume = 0;
+            musicMuted = true;
+        }
+    }
+
+    public void MuteSFXButton()
+    {
+        if (sfxMuted)
+        {
+            muteSFXButton.GetComponent<Image>().color = buttonColors[0];
+            muteSFXButton.transform.Find("Text (TMP)").GetComponent<TextMeshProUGUI>().text = "Mute SFX";
+            sfxSource.volume = 1;
+            sfxMuted = false;
+            PlayQuickSound(sfxClips[0]);
+        }
+        else
+        {
+            muteSFXButton.GetComponent<Image>().color = buttonColors[1];
+            muteSFXButton.transform.Find("Text (TMP)").GetComponent<TextMeshProUGUI>().text = "Unmute SFX";
+            sfxSource.volume = 0;
+            sfxMuted = true;
+        }
+    }
+
+    public void ExitGameButton()
+    {
+        Application.Quit();
+    }
+
+    void PlayQuickSound(AudioClip clip)
+    {
+        if (!sfxMuted)
+        {
+            sfxSource.clip = clip;
+            sfxSource.Play();
+        }
     }
 
     IEnumerator ComputerMove()
