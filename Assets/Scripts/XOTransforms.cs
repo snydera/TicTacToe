@@ -12,6 +12,7 @@ public class XOTransforms : MonoBehaviour
     GameObject hoveringGamePiece;
     GameObject placedGamePiece;
 
+    private int x, y;
 
     private void Awake()
     {
@@ -21,17 +22,19 @@ public class XOTransforms : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        
+        string name = this.gameObject.name;
+
+        // Map letters A, B, C to indices 0, 1, 2
+        x = name[0] - 'A';
+
+        // Map numbers 1, 2, 3 to indices 0, 1, 2
+        y = int.Parse(name[1].ToString()) - 1;
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
 
     private void OnMouseOver()
     {
+        /*
         Debug.Log("Mouse over " + this.gameObject.name);
 
         if (gameManager.xTurn && !hovering)
@@ -44,17 +47,32 @@ public class XOTransforms : MonoBehaviour
             hoveringGamePiece = Instantiate(gameManager.oPrefab, transform);
             hovering = true;
         }
+        */
 
+        if (!hovering && gameManager.board[x, y] == 0 && gameManager.computerMove == false)
+        {
+            hoveringGamePiece = Instantiate(gameManager.xTurn ? gameManager.xPrefab : gameManager.oPrefab, transform);
+            hovering = true;
+        }
     }
 
     private void OnMouseExit()
     {
+        if (hoveringGamePiece)
+        {
+            Destroy(hoveringGamePiece);
+            hovering = false;
+        }
+
+        /*
         Destroy(hoveringGamePiece);
         hovering = false;
+        */
     }
 
     private void OnMouseDown()
     {
+        /*
         if (gameManager.xTurn && hovering)
         {
             PlaceGamePiece(gameManager.xPrefab);
@@ -63,12 +81,20 @@ public class XOTransforms : MonoBehaviour
         {
             PlaceGamePiece(gameManager.oPrefab);
         }
+        */
+
+        if (hovering && gameManager.board[x, y] == 0 && gameManager.computerMove == false)
+        {
+            PlaceGamePiece(gameManager.xTurn ? gameManager.xPrefab : gameManager.oPrefab);
+            gameManager.PlacePiece(x, y, gameManager.xTurn ? 1 : 2);
+        }
     }
 
     void PlaceGamePiece(GameObject gamePiecePrefab)
     {
         placedGamePiece = Instantiate(gamePiecePrefab, transform.position, Quaternion.Euler(-90f, 0, 0));
         Destroy(hoveringGamePiece);
+        gameManager.placedPieces.Add(placedGamePiece);
         placedGamePiece.GetComponent<MeshRenderer>().material = gameManager.placedPieceMat;
         GetComponent<BoxCollider>().enabled = false;
         hovering = false;

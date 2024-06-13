@@ -13,17 +13,32 @@ public class GameManager : MonoBehaviour
     public Material placedPieceMat;
 
     public Animator cameraAnimator;
+    public Transform mainCameraTransform;
+    public Transform gameViewTransform;
 
     public int[,] board = new int[3, 3]; // 0 = empty, 1 = X, 2 = O
     private int movesMade = 0;
 
     public TextMeshProUGUI resultText;
     public GameObject resultPanel;
+    public GameObject buttonPanel;
+
+    public List<GameObject> placedPieces = new List<GameObject>();
+    public Collider[] gameBoardTriggers;
+
+    bool gameOver = false;
+    bool onePlayerMode = false;
+    public bool computerMove = false;
 
     private void Start()
     {
         resultPanel.SetActive(false);
         ResetBoard();
+
+        foreach (Collider trigger in gameBoardTriggers)
+        {
+            trigger.enabled = false;
+        }
     }
     public void TogglePlayerTurn()
     {
@@ -34,6 +49,12 @@ public class GameManager : MonoBehaviour
         else
         {
             xTurn = true;
+        }
+
+        if (!xTurn && onePlayerMode && !gameOver)
+        {
+            computerMove = true;
+            StartCoroutine(ComputerMove());
         }
     }
 
@@ -67,9 +88,16 @@ public class GameManager : MonoBehaviour
 
     private void EndGame(string result)
     {
+        gameOver = true;
         resultText.text = result;
         resultPanel.SetActive(true);
-        // Disable further input or reset the game
+        buttonPanel.SetActive(true);
+        buttonPanel.GetComponent<CanvasGroup>().alpha = 1.0f;
+        
+        foreach (Collider trigger in gameBoardTriggers)
+        {
+            trigger.enabled = false;
+        }
     }
 
     private void ResetBoard()
@@ -77,15 +105,89 @@ public class GameManager : MonoBehaviour
         board = new int[3, 3];
         movesMade = 0;
         xTurn = true;
+
+        if (gameOver)
+        {
+            resultPanel.SetActive(false);
+            buttonPanel.SetActive(false);
+        }
+
+        foreach (GameObject go in placedPieces)
+        {
+            Destroy(go);
+        }
+      
+        foreach (Collider trigger in gameBoardTriggers)
+        {
+            trigger.enabled = true;
+        }
+
+        placedPieces.Clear();
+        gameOver = false;
     }
 
     public void OnePlayerButton()
     {
-        cameraAnimator.SetTrigger("StartGame");
+        onePlayerMode = true;
+
+        if (gameOver)
+        {
+            ResetBoard();
+
+        }
+        else
+        {
+            cameraAnimator.SetTrigger("StartGame");
+        }
+        
     }
 
     public void TwoPlayersButton()
     {
-        cameraAnimator.SetTrigger("StartGame");
+        onePlayerMode = false;
+
+        if (gameOver)
+        {
+            ResetBoard();
+           
+        }
+        else
+        {
+            cameraAnimator.SetTrigger("StartGame");
+        }
+        
+    }
+
+    IEnumerator ComputerMove()
+    {
+        yield return new WaitForSeconds(1.0f); // Small delay to simulate thinking time
+
+        // Find a random empty spot
+        List<int> emptySpots = new List<int>();
+        for (int i = 0; i < gameBoardTriggers.Length; i++)
+        {
+            if (gameBoardTriggers[i].enabled)
+            {
+                emptySpots.Add(i);
+            }
+        }
+
+        if (emptySpots.Count > 0)
+        {
+            int moveIndex = emptySpots[Random.Range(0, emptySpots.Count)];
+            int x = moveIndex / 3;
+            int y = moveIndex % 3;
+            PlacePiece(x, y, 2);
+
+            // Instantiate and place the piece visually
+            GameObject piece = Instantiate(oPrefab, gameBoardTriggers[moveIndex].transform.position, Quaternion.Euler(-90f, 0, 0));
+            piece.GetComponent<MeshRenderer>().material = placedPieceMat;
+            placedPieces.Add(piece);
+            gameBoardTriggers[moveIndex].enabled = false;
+
+            TogglePlayerTurn();
+        }
+
+        computerMove = false;
     }
 }
