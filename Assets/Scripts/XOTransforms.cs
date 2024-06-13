@@ -31,23 +31,10 @@ public class XOTransforms : MonoBehaviour
 
     private void OnMouseOver()
     {
-        if (!hovering && /*gameManager.board[x, y] == 0 &&*/ gameManager.computerMove == false)
+        if (!hovering && gameManager.computerMove == false)
         {
-            /*
             hoveringGamePiece = Instantiate(gameManager.xTurn ? gameManager.xPrefab : gameManager.oPrefab, transform);
             hovering = true;
-            */
-            
-            if (gameManager.board[x, y] == 0)
-            {
-                hoveringGamePiece = Instantiate(gameManager.xTurn ? gameManager.xPrefab : gameManager.oPrefab, transform);
-                hovering = true;
-            }
-            else
-            {
-                hoveringGamePiece = Instantiate(gameManager.xTurn ? gameManager.xPrefab : gameManager.oPrefab, transform);
-                hovering = true;
-            }
         }
     }
 
@@ -62,30 +49,11 @@ public class XOTransforms : MonoBehaviour
 
     private void OnMouseDown()
     {
-        if (hovering && /*gameManager.board[x, y] == 0 &&*/ gameManager.computerMove == false)
+        if (hovering && gameManager.computerMove == false)
         {
-            /*
             PlaceGamePiece(gameManager.xTurn ? gameManager.xPrefab : gameManager.oPrefab);
             gameManager.PlacePiece(x, y, gameManager.xTurn ? 1 : 2);
-            */
-            
-            if (gameManager.board[x, y] == 0)
-            {
-                PlaceGamePiece(gameManager.xTurn ? gameManager.xPrefab : gameManager.oPrefab);
-                gameManager.PlacePiece(x, y, gameManager.xTurn ? 1 : 2);
-            }
-            else
-            {
-                PlaceGamePiece(gameManager.xTurn ? gameManager.xPrefab : gameManager.oPrefab);
-                gameManager.PlacePiece(x, y, gameManager.xTurn ? 1 : 2);
-            }
         }
-    }
-
-    IEnumerator ClickDelay()
-    {
-        yield return new WaitForSeconds(1);
-        gameManager.canClick = true;
     }
 
     void PlaceGamePiece(GameObject gamePiecePrefab)

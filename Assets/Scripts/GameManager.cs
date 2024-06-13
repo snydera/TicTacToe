@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
+using UnityEngine.InputSystem;
 
 public class GameManager : MonoBehaviour
 {
@@ -11,7 +12,6 @@ public class GameManager : MonoBehaviour
 
     public bool xTurn = true;
     public bool computerMove = false;
-    public bool canClick = true;
 
     bool gameOver = false;
     bool onePlayerMode = false;
@@ -58,8 +58,6 @@ public class GameManager : MonoBehaviour
     [SerializeField]
     GameObject muteSFXButton;
 
-    [SerializeField]
-    GameObject blockingCollider;
 
     private void Start()
     {
@@ -73,6 +71,7 @@ public class GameManager : MonoBehaviour
     }
     public void TogglePlayerTurn()
     {
+        
         if (xTurn)
         {
             xTurn = false;
@@ -89,11 +88,15 @@ public class GameManager : MonoBehaviour
         }
     }
 
+
     public void PlacePiece(int x, int y, int player)
     {
         PlayQuickSound(sfxClips[Random.Range(1, 4)]);
         board[x, y] = player;
         movesMade++;
+
+        Debug.Log("Piece placed at (" + x + ", " + y + ") by " + (player == 1 ? "X" : "O"));
+
 
         if (CheckWin(x, y, player))
         {
@@ -112,7 +115,7 @@ public class GameManager : MonoBehaviour
     }
 
     private bool CheckWin(int x, int y, int player)
-    {
+    {     
         // Check row
         if (board[x, 0] == player && board[x, 1] == player && board[x, 2] == player) return true;
         // Check column
@@ -120,7 +123,7 @@ public class GameManager : MonoBehaviour
         // Check diagonals
         if (x == y && board[0, 0] == player && board[1, 1] == player && board[2, 2] == player) return true;
         if (x + y == 2 && board[0, 2] == player && board[1, 1] == player && board[2, 0] == player) return true;
-
+        
         return false;
     }
 
@@ -164,6 +167,8 @@ public class GameManager : MonoBehaviour
         gameOver = false;
     }
 
+    #region Buttons
+
     public void OnePlayerButton()
     {
         onePlayerMode = true;
@@ -175,11 +180,8 @@ public class GameManager : MonoBehaviour
         else
         {
             cameraAnimator.SetTrigger("StartGame");
-            StartCoroutine(DelayInstructionsText());
         }
 
-        resultPanel.SetActive(true);
-        resultText.text = "X moves first. Click an open space on the board.";
         PlayQuickSound(sfxClips[0]);
     }
 
@@ -194,7 +196,6 @@ public class GameManager : MonoBehaviour
         else
         {
             cameraAnimator.SetTrigger("StartGame");
-            StartCoroutine(DelayInstructionsText());
         }
 
 
@@ -251,6 +252,8 @@ public class GameManager : MonoBehaviour
         Application.Quit();
     }
 
+    #endregion
+
     void PlayQuickSound(AudioClip clip)
     {
         if (!sfxMuted)
@@ -261,13 +264,12 @@ public class GameManager : MonoBehaviour
     }
 
     IEnumerator ComputerMove()
-    {
-        blockingCollider.SetActive(true);
-        
-        yield return new WaitForSeconds(1.0f);
+    {    
+        yield return new WaitForSeconds(1f);
 
         // Find a random empty spot
         List<int> emptySpots = new List<int>();
+
         for (int i = 0; i < gameBoardTriggers.Length; i++)
         {
             if (gameBoardTriggers[i].enabled)
@@ -279,8 +281,8 @@ public class GameManager : MonoBehaviour
         if (emptySpots.Count > 0)
         {
             int moveIndex = emptySpots[Random.Range(0, emptySpots.Count)];
-            int x = moveIndex / 3;
-            int y = moveIndex % 3;
+            int x = moveIndex % 3;
+            int y = moveIndex / 3;
             PlacePiece(x, y, 2);
 
             GameObject piece = Instantiate(oPrefab, gameBoardTriggers[moveIndex].transform.position, Quaternion.Euler(-90f, 0, 0));
@@ -291,8 +293,7 @@ public class GameManager : MonoBehaviour
             TogglePlayerTurn();
         }
         computerMove = false;
-        
-        yield return new WaitForSeconds(1.0f);
-        blockingCollider.SetActive(false);
+       
     }
+
 }

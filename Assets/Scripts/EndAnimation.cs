@@ -6,6 +6,7 @@ public class EndAnimation : MonoBehaviour
 {
     public Transform gameViewTransform;
     public Collider[] gameBoardTriggers;
+    public GameObject resultsPanel;
     public void EndAnimations()
     {
         transform.position = gameViewTransform.position;
@@ -15,6 +16,8 @@ public class EndAnimation : MonoBehaviour
         {
             trigger.enabled = true;
         }
+
+        resultsPanel.SetActive(true);
 
         GetComponent<Animator>().enabled = false;
     }
