@@ -15,6 +15,7 @@ public class GameManager : MonoBehaviour
 
     bool gameOver = false;
     bool onePlayerMode = false;
+    bool easyMode = false;
 
     bool musicMuted = false;
     bool sfxMuted = false;
@@ -32,16 +33,22 @@ public class GameManager : MonoBehaviour
     Collider[] gameBoardTriggers;
 
     [SerializeField]
-    GameObject resultPanel;
+    Animator cameraAnimator;
 
     [SerializeField]
+    GameObject resultPanel;
+
     TextMeshProUGUI resultText;
 
     [SerializeField]
     GameObject buttonPanel;
 
-    [SerializeField]
-    Animator cameraAnimator;
+    Button onePlayerButton;
+    Button twoPlayersButton;
+
+    GameObject muteMusicButtonGO;
+    GameObject muteSFXButtonGO;
+
 
     [SerializeField]
     AudioSource musicSource;
@@ -52,17 +59,22 @@ public class GameManager : MonoBehaviour
     [SerializeField]
     Color[] buttonColors;
 
-    [SerializeField]
-    GameObject muteMusicButton;
 
-    [SerializeField]
-    GameObject muteSFXButton;
-
+    private void Awake()
+    {
+        resultText = resultPanel.transform.Find("Result Text").GetComponent<TextMeshProUGUI>();
+        onePlayerButton = buttonPanel.transform.Find("One Player Button").GetComponent<Button>();
+        twoPlayersButton = buttonPanel.transform.Find("Two Players Button").GetComponent <Button>();
+        muteMusicButtonGO = buttonPanel.transform.Find("Mute Music Button").gameObject;
+        muteSFXButtonGO = buttonPanel.transform.Find("Mute SFX Button").gameObject;
+    }
 
     private void Start()
     {
         resultPanel.SetActive(false);
         ResetBoard();
+        onePlayerButton.onClick.AddListener(OnePlayerButtonPressed);
+        twoPlayersButton.onClick.AddListener(TwoPlayersButtonPressed);
 
         foreach (Collider trigger in gameBoardTriggers)
         {
@@ -95,7 +107,7 @@ public class GameManager : MonoBehaviour
         board[x, y] = player;
         movesMade++;
 
-        Debug.Log("Piece placed at (" + x + ", " + y + ") by " + (player == 1 ? "X" : "O"));
+        //Debug.Log("Piece placed at (" + x + ", " + y + ") by " + (player == 1 ? "X" : "O"));
 
 
         if (CheckWin(x, y, player))
@@ -133,6 +145,13 @@ public class GameManager : MonoBehaviour
         resultText.text = result;
         resultPanel.SetActive(true);
         buttonPanel.SetActive(true);
+
+        RemoveButtonListeners();
+        onePlayerButton.transform.Find("Text (TMP)").GetComponent<TextMeshProUGUI>().text = "One\nPlayer";
+        onePlayerButton.onClick.AddListener(OnePlayerButtonPressed);
+        twoPlayersButton.transform.Find("Text (TMP)").GetComponent<TextMeshProUGUI>().text = "Two\nPlayers";
+        twoPlayersButton.onClick.AddListener(TwoPlayersButtonPressed);
+
         buttonPanel.GetComponent<CanvasGroup>().alpha = 1.0f;
         
         foreach (Collider trigger in gameBoardTriggers)
@@ -149,7 +168,6 @@ public class GameManager : MonoBehaviour
 
         if (gameOver)
         {
-            resultPanel.SetActive(false);
             buttonPanel.SetActive(false);
         }
 
@@ -169,9 +187,43 @@ public class GameManager : MonoBehaviour
 
     #region Buttons
 
-    public void OnePlayerButton()
+    public void OnePlayerButtonPressed()
     {
         onePlayerMode = true;
+        RemoveButtonListeners();
+        onePlayerButton.transform.Find("Text (TMP)").GetComponent<TextMeshProUGUI>().text = "Easy Mode";
+        onePlayerButton.onClick.AddListener(EasyModeButton);
+        twoPlayersButton.transform.Find("Text (TMP)").GetComponent<TextMeshProUGUI>().text = "Hard Mode";
+        twoPlayersButton.onClick.AddListener(HardModeButton);
+    }
+
+    void EasyModeButton()
+    {
+        easyMode = true;
+        StartGame();
+    }
+
+    void HardModeButton()
+    {
+        easyMode = false;
+        StartGame();
+    }
+
+    public void TwoPlayersButtonPressed()
+    {
+        onePlayerMode = false;
+        StartGame();
+    }
+
+    void RemoveButtonListeners()
+    {
+        onePlayerButton.onClick.RemoveAllListeners();
+        twoPlayersButton.onClick.RemoveAllListeners();
+    }
+
+    public void StartGame()
+    {
+        resultText.text = "X moves first. Click an open space on the board.";
 
         if (gameOver)
         {
@@ -185,69 +237,45 @@ public class GameManager : MonoBehaviour
         PlayQuickSound(sfxClips[0]);
     }
 
-    public void TwoPlayersButton()
-    {
-        onePlayerMode = false;
-
-        if (gameOver)
-        {
-            ResetBoard(); 
-        }
-        else
-        {
-            cameraAnimator.SetTrigger("StartGame");
-        }
-
-
-        PlayQuickSound(sfxClips[0]);
-    }
-
-    IEnumerator DelayInstructionsText()
-    {
-        yield return new WaitForSeconds(2f);
-        resultPanel.SetActive(true);
-        resultText.text = "X moves first. Click an open space on the board.";
-    }
-
-    public void MuteMusicButton()
+    public void MuteMusicButtonPressed()
     {
         if (musicMuted)
         {
-            muteMusicButton.GetComponent<Image>().color = buttonColors[0];
-            muteMusicButton.transform.Find("Text (TMP)").GetComponent<TextMeshProUGUI>().text = "Mute Music";
+            muteMusicButtonGO.GetComponent<Image>().color = buttonColors[0];
+            muteMusicButtonGO.transform.Find("Text (TMP)").GetComponent<TextMeshProUGUI>().text = "Mute Music";
             musicSource.volume = 1;
             musicMuted = false;
             PlayQuickSound(sfxClips[0]);
         }
         else
         {
-            muteMusicButton.GetComponent<Image>().color = buttonColors[1];
-            muteMusicButton.transform.Find("Text (TMP)").GetComponent<TextMeshProUGUI>().text = "Unmute Music";
+            muteMusicButtonGO.GetComponent<Image>().color = buttonColors[1];
+            muteMusicButtonGO.transform.Find("Text (TMP)").GetComponent<TextMeshProUGUI>().text = "Unmute Music";
             musicSource.volume = 0;
             musicMuted = true;
         }
     }
 
-    public void MuteSFXButton()
+    public void MuteSFXButtonPressed()
     {
         if (sfxMuted)
         {
-            muteSFXButton.GetComponent<Image>().color = buttonColors[0];
-            muteSFXButton.transform.Find("Text (TMP)").GetComponent<TextMeshProUGUI>().text = "Mute SFX";
+            muteSFXButtonGO.GetComponent<Image>().color = buttonColors[0];
+            muteSFXButtonGO.transform.Find("Text (TMP)").GetComponent<TextMeshProUGUI>().text = "Mute SFX";
             sfxSource.volume = 1;
             sfxMuted = false;
             PlayQuickSound(sfxClips[0]);
         }
         else
         {
-            muteSFXButton.GetComponent<Image>().color = buttonColors[1];
-            muteSFXButton.transform.Find("Text (TMP)").GetComponent<TextMeshProUGUI>().text = "Unmute SFX";
+            muteSFXButtonGO.GetComponent<Image>().color = buttonColors[1];
+            muteSFXButtonGO.transform.Find("Text (TMP)").GetComponent<TextMeshProUGUI>().text = "Unmute SFX";
             sfxSource.volume = 0;
             sfxMuted = true;
         }
     }
 
-    public void ExitGameButton()
+    public void ExitGameButtonPressed()
     {
         Application.Quit();
     }
@@ -264,10 +292,23 @@ public class GameManager : MonoBehaviour
     }
 
     IEnumerator ComputerMove()
-    {    
+    {
         yield return new WaitForSeconds(1f);
 
-        // Find a random empty spot
+        if (easyMode)
+        {
+            RandomMove();
+        }
+        else
+        {
+            CompetitiveMove();
+        }
+
+        computerMove = false;
+    }
+
+    void RandomMove()
+    {
         List<int> emptySpots = new List<int>();
 
         for (int i = 0; i < gameBoardTriggers.Length; i++)
@@ -292,8 +333,90 @@ public class GameManager : MonoBehaviour
 
             TogglePlayerTurn();
         }
-        computerMove = false;
-       
+    }
+
+    void CompetitiveMove()
+    {
+        Vector2Int move = GetBestMove();
+        int x = move.x;
+        int y = move.y;
+        PlacePiece(x, y, 2);
+
+        GameObject piece = Instantiate(oPrefab, gameBoardTriggers[y * 3 + x].transform.position, Quaternion.Euler(-90f, 0, 0));
+        piece.GetComponent<MeshRenderer>().material = placedPieceMat;
+        placedPieces.Add(piece);
+        gameBoardTriggers[y * 3 + x].enabled = false;
+
+        TogglePlayerTurn();
+    }
+
+    private Vector2Int GetBestMove()
+    {
+        List<Vector2Int> availableMoves = new List<Vector2Int>();
+
+        for (int x = 0; x < 3; x++)
+        {
+            for (int y = 0; y < 3; y++)
+            {
+                if (board[x, y] == 0)
+                {
+                    availableMoves.Add(new Vector2Int(x, y));
+                }
+            }
+        }
+
+        // Randomize the computer's first move
+        if (movesMade == 1)
+        {
+            return availableMoves[Random.Range(0, availableMoves.Count)];
+        }
+
+        // Check for winning move or blocking move
+        foreach (Vector2Int move in availableMoves)
+        {
+            int x = move.x;
+            int y = move.y;
+
+            // Win: If the computer can win in the next move, take that move
+            board[x, y] = 2;
+            if (CheckWin(x, y, 2))
+            {
+                board[x, y] = 0;
+                return move;
+            }
+            board[x, y] = 0;
+
+            // Block: If the player can win in the next move, block that move
+            board[x, y] = 1;
+            if (CheckWin(x, y, 1))
+            {
+                board[x, y] = 0;
+                return move;
+            }
+            board[x, y] = 0;
+        }
+
+        // Checks available corners
+        foreach (Vector2Int move in new Vector2Int[] { new Vector2Int(0, 0), new Vector2Int(2, 2), new Vector2Int(0, 2), new Vector2Int(2, 0) })
+        {
+            if (board[move.x, move.y] == 0)
+            {
+                return move;
+            }
+        }
+
+        // Checks available sides
+        foreach (Vector2Int move in new Vector2Int[] { new Vector2Int(0, 1), new Vector2Int(1, 0), new Vector2Int(1, 2), new Vector2Int(2, 1) })
+        {
+            if (board[move.x, move.y] == 0)
+            {
+                return move;
+            }
+        }
+        
+        // return an invalid move
+        return new Vector2Int(-1, -1);
+        
     }
 
 }
