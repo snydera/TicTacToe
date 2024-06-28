@@ -8,3 +8,8 @@ Thank you for taking a look at my Tic-Tac-Toe game. It was made in less than two
 Yours,
 
 Adam Snyder
+
+
+Update 6/28/2024
+
+This update adds easy and hard game difficulty for one player mode. In hard mode, the computer player will make more competitive moves that prioritize blocking the player from winning and moves that will win the game.
